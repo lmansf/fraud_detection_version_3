@@ -11,7 +11,7 @@ CREATE TEMPORARY TABLE batch_seq AS
 SELECT posexplode(sequence(1, var_batch_size)) AS (batch_idx, seq_num);
 
 -- Insert batch of orders
-INSERT INTO `realtime-fraud-detection`.01_bronze.raw_orders
+INSERT INTO `realtime-fraud-detection-version3`.01_bronze.raw_orders
 WITH 
 batch_orders AS (
     SELECT 
@@ -28,7 +28,7 @@ random_restaurants AS (
             r.restaurant_id,
             row_number() OVER (PARTITION BY bo.batch_row_num ORDER BY rand()) AS rn
         FROM batch_orders bo
-        CROSS JOIN `realtime-fraud-detection`.00_reference.restaurants r
+        CROSS JOIN `realtime-fraud-detection-version3`.00_reference.restaurants r
     )
     WHERE rn = 1
 ),
@@ -42,7 +42,7 @@ random_customers AS (
             c.customer_id,
             row_number() OVER (PARTITION BY bo.batch_row_num ORDER BY rand()) AS rn
         FROM batch_orders bo
-        CROSS JOIN `realtime-fraud-detection`.00_reference.customers_2 c
+        CROSS JOIN `realtime-fraud-detection-version3`.00_reference.customers_2 c
     )
     WHERE rn = 1
 ),
@@ -124,7 +124,7 @@ random_num_items AS (
     FROM random_restaurants r
     JOIN (
         SELECT restaurant_id, COUNT(*) as mi_count
-        FROM `realtime-fraud-detection`.00_reference.menu_items
+        FROM `realtime-fraud-detection-version3`.00_reference.menu_items
         GROUP BY restaurant_id
     ) mi ON mi.restaurant_id = r.restaurant_id
 ),
@@ -166,7 +166,7 @@ cte_menu_items AS (
         bc.batch_row_num,
         mi.*
     FROM batch_context bc
-    JOIN `realtime-fraud-detection`.00_reference.menu_items mi ON mi.restaurant_id = bc.restaurant_id
+    JOIN `realtime-fraud-detection-version3`.00_reference.menu_items mi ON mi.restaurant_id = bc.restaurant_id
 ),
 cte_selected_items AS (
     SELECT 
@@ -212,7 +212,7 @@ customer_details AS (
         ct.credit_card_exp_month,
         ct.cvv
     FROM batch_context bc
-    JOIN `realtime-fraud-detection`.00_reference.customers_2 ct ON ct.customer_id = bc.customer_id
+    JOIN `realtime-fraud-detection-version3`.00_reference.customers_2 ct ON ct.customer_id = bc.customer_id
 )
 SELECT 
     bc.order_id as order_id,
